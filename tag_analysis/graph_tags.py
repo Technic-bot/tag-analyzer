@@ -61,13 +61,23 @@ def parse_tags(tags):
     else:
         tag_filename = tags[0]
         tag_list = []
+        color_list = []
         with open(tag_filename,'r') as tag_file:
             for line in tag_file:
-                proc_line = line.strip()
-                tag_list.append(proc_line)
+                tag, color = parse_line(line)
+                tag_list.append(tag)
+                color_list.append(color)
+                
     print(tag_list)
-    return tag_list
+    return tag_list, color_list
 
+def parse_line(line):
+    proc_line = line.split()
+    tag = proc_line[0]
+    color = None
+    if len(proc_line) > 1:
+        color = proc_line[1]
+    return tag, color
 
 def group_artworks(df, freq):
     grouper = pd.Grouper(key='creation', freq=freq)
@@ -83,15 +93,15 @@ def merge_df(tag_df, times_df):
     print(merged_df.head())
     return merged_df
 
-def graph_tags(merged_df, tags):
+def graph_tags(merged_df, tags, colors):
     # plt.style.use('seaborn-v0_8-darkgrid')
     plt.style.use('ggplot')
     fig, ax = plt.subplots(figsize=(19.2,10.8))
     bottom = np.zeros_like(merged_df['total'])
-    for tag in tags:
+    for tag, color in zip(tags, colors):
         ax.bar(
             merged_df.index, merged_df[tag].values, label=tag, bottom=bottom,
-            width=50)
+            width=50, color=color)
         bottom+=merged_df[tag].values
     ax.bar(
         merged_df.index, merged_df['others'].values, label='Others',
@@ -103,15 +113,14 @@ def graph_tags(merged_df, tags):
                 xycoords='axes fraction', fontsize=10)
     return fig
         
-
 if __name__=="__main__":
     opts = proc_opts()
-    tags = parse_tags(opts.tags)
+    tags, colors = parse_tags(opts.tags)
     df = preprocess(opts.filename, opts.time_start, opts.time_stop)
     tag_df = group_tags(df, tags, opts.frequency)
     time_df = group_artworks(df, opts.frequency)
     merged_df = merge_df(tag_df, time_df)
-    fig = graph_tags(merged_df, tags)
+    fig = graph_tags(merged_df, tags, colors)
     if not opts.outdirectory:
         plt.show()
     else:
