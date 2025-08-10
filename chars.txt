@@ -1,7 +1,7 @@
-flora_(twokinds) #000000
-natani
-keith_keiser
-kathrin_vaughan
-trace_legacy
-raine_silverlock
-laura_(twokinds)
+flora_(twokinds) #f7a654
+natani  #896766
+keith_keiser #c7b299
+kathrin_vaughan #78685b
+trace_legacy #00ffff
+raine_silverlock #f6f6f6
+laura_(twokinds) #d86316

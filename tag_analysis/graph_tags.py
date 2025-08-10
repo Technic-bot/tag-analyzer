@@ -48,7 +48,9 @@ def group_tags(df, tags, freq):
     print(f"Exploding all tags got {len(df)}" )
     print(exp_df.head())
     grouper = pd.Grouper(key='creation', freq=freq)
-    grp = exp_df.groupby([grouper, 'all_tags']).size().unstack(fill_value=0)
+    # grp = exp_df.groupby([grouper, 'all_tags']).size().unstack(fill_value=0)
+    grp = exp_df.groupby([grouper, 'all_tags'])['id'].nunique().unstack(fill_value=0)
+    # exp_df.groupby([grouper, 'all_tags']).size().to_csv("debug.csv")
     print("Tag group output")
     print(grp[tags].head())
     # Slice before returning
@@ -58,6 +60,7 @@ def parse_tags(tags):
     # Passed a list through cli
     if len(tags) > 1:
         tag_list = tags
+        color_list = [None] * len(tags)
     else:
         tag_filename = tags[0]
         tag_list = []
@@ -94,18 +97,15 @@ def merge_df(tag_df, times_df):
     return merged_df
 
 def graph_tags(merged_df, tags, colors):
-    # plt.style.use('seaborn-v0_8-darkgrid')
-    plt.style.use('ggplot')
+    plt.style.use('seaborn-v0_8-darkgrid')
+    # plt.style.use('ggplot')
     fig, ax = plt.subplots(figsize=(19.2,10.8))
-    bottom = np.zeros_like(merged_df['total'])
+    bottom = np.zeros_like(merged_df.index)
     for tag, color in zip(tags, colors):
         ax.bar(
             merged_df.index, merged_df[tag].values, label=tag, bottom=bottom,
             width=50, color=color)
         bottom+=merged_df[tag].values
-    ax.bar(
-        merged_df.index, merged_df['others'].values, label='Others',
-        bottom=bottom, width=50)
   
     ax.legend()
     ax.set_title("Tags over time")
@@ -119,8 +119,7 @@ if __name__=="__main__":
     df = preprocess(opts.filename, opts.time_start, opts.time_stop)
     tag_df = group_tags(df, tags, opts.frequency)
     time_df = group_artworks(df, opts.frequency)
-    merged_df = merge_df(tag_df, time_df)
-    fig = graph_tags(merged_df, tags, colors)
+    fig = graph_tags(tag_df, tags, colors)
     if not opts.outdirectory:
         plt.show()
     else:
