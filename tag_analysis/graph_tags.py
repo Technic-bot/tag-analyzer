@@ -6,9 +6,11 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+from matplotlib.colors import LinearSegmentedColormap
 
-years =mdates.YearLocator()
-six_months = mdates.MonthLocator(interval=1)
+years = mdates.YearLocator()
+six_months = mdates.MonthLocator(interval=6)
+auto_locator = mdates.AutoDateLocator()
 
 def proc_opts():
     parser = argparse.ArgumentParser(description="Analyze and graph artwork tags.")
@@ -52,7 +54,7 @@ def group_tags(df, tags, freq):
     grp = exp_df.groupby([grouper, 'all_tags'])['id'].nunique().unstack(fill_value=0)
     # exp_df.groupby([grouper, 'all_tags']).size().to_csv("debug.csv")
     print("Tag group output")
-    print(grp[tags].head())
+    print(grp[tags].tail())
     # Slice before returning
     return grp[tags]
 
@@ -85,7 +87,7 @@ def parse_line(line):
 def group_artworks(df, freq):
     grouper = pd.Grouper(key='creation', freq=freq)
     time_grp = df.groupby(grouper).size()
-    print(time_grp.head())
+    print(time_grp.tail())
     return time_grp
 
 def merge_df(tag_df, times_df):
@@ -97,19 +99,77 @@ def merge_df(tag_df, times_df):
     return merged_df
 
 def graph_tags(merged_df, tags, colors):
-    plt.style.use('seaborn-v0_8-darkgrid')
-    # plt.style.use('ggplot')
+    # plt.style.use('seaborn-v0_8-darkgrid')
+    plt.style.use('ggplot')
     fig, ax = plt.subplots(figsize=(19.2,10.8))
     bottom = np.zeros_like(merged_df.index)
     for tag, color in zip(tags, colors):
         ax.bar(
             merged_df.index, merged_df[tag].values, label=tag, bottom=bottom,
-            width=50, color=color)
+            width=-50, color=color, align='edge')
         bottom+=merged_df[tag].values
   
+    ax.xaxis_date()
+    fmtr = mdates.DateFormatter('%Y-%m')
+
+    ax.xaxis.set_major_locator(auto_locator)
+    ax.xaxis.set_major_formatter(fmtr)
+    plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
+
     ax.legend()
     ax.set_title("Tags over time")
-    ax.annotate("By TecBot with ♥ ", xy= (0.8,-0.05),
+    ax.annotate("By TecBot with ♥ ", xy= (0.8,-0.1),
+                xycoords='axes fraction', fontsize=10)
+    return fig
+
+def graph_heatmap(df):
+    plt.style.use('seaborn-v0_8-darkgrid')
+
+    df = df[df.sum().sort_values(ascending=False).index]
+    data = df.T.values
+    chars = df.columns
+    times = df.index
+    dates = mdates.date2num(times)
+
+    custom_cmap = LinearSegmentedColormap.from_list(
+        "my_cmap",
+        #["#72CDFF", '#F7941D'],
+        [ "#6dcff6", "#f7941d"],
+        N=256  # smoothness
+    )
+
+    # Things:
+    cyan, orange = [ "#6dcff6", "#f7941d"]
+    # Me
+    cyan, orange = ["#72CDFF", '#F7941D']
+
+    fig, ax = plt.subplots(figsize=(19.2,10.8))
+    im = ax.imshow(data,
+            aspect='auto',
+            cmap=custom_cmap,
+            # cmap="magma",
+            interpolation='nearest',
+            extent=[dates.min(), dates.max(), 0, data.shape[0]],
+            origin='lower'
+            )
+
+    cb = plt.colorbar(im, ax=ax)
+    cb.set_label("Incidence of characters in artworks")
+
+    ax.xaxis_date()
+    locator = mdates.AutoDateLocator()
+    fmtr = mdates.DateFormatter('%Y-%m')
+
+    ax.xaxis.set_major_locator(locator)
+    ax.xaxis.set_major_formatter(fmtr)
+
+    ax.set_yticks(np.arange(len(chars)))
+    ax.set_yticklabels(chars)
+    plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
+
+
+    ax.set_title("Heatmap of characters over time")
+    ax.annotate("By TecBot with ♥ ", xy= (0.8,-0.1),
                 xycoords='axes fraction', fontsize=10)
     return fig
         
@@ -120,10 +180,12 @@ if __name__=="__main__":
     tag_df = group_tags(df, tags, opts.frequency)
     time_df = group_artworks(df, opts.frequency)
     fig = graph_tags(tag_df, tags, colors)
+    htm = graph_heatmap(tag_df)
     if not opts.outdirectory:
         plt.show()
     else:
-        plt.savefig(opts.outdirectory + "tags_over_time.png")
+        fig.savefig(opts.outdirectory + "tags_over_time.png")
+        htm.savefig(opts.outdirectory + "heatmap.png")
 
 
 

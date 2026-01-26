@@ -17,7 +17,7 @@ This will create 4 different files under the selected folder. Characters.csv met
 The other script [graph_tags.py](tag_analysis/graph_tags.py) is much more interesting it takes a list of tags either provided through cli or thorugh a file and graphs how the number of times that suite of tags appears over time. You can use it as follows:
 
 ```bash
-python tag_analysis/graph_tags.py data/2025/tom-26-jul-25.json chars.txt --freq 3ME --time-start 2015-02-01
+python tag_analysis/graph_tags.py data/2025/tom-26-jul-25.json chars.txt --freq QE --time-start 2015-02-01
 ```
 
 Like so you pass a json containing the e621 results from your query and a list of tags, in this case character names, in the chars.txt file. You can specify time grouping, in this case each 3 months or quarter and also can specify when to start counting.
@@ -25,7 +25,7 @@ Like so you pass a json containing the e621 results from your query and a list o
 An alternative invocation, that allows you to save the graph to disk instead of just visualizing it is as follows:
 
 ```bash
-python tag_analysis/graph_tags.py data/2025/tom-26-jul-25.json chars.txt --freq 3ME --time-start 2015-02-01 --outdir results/graphs/tom_fischbach/ago-2025/
+python tag_analysis/graph_tags.py data/2025/tom-26-jul-25.json chars.txt --freq QE --time-start 2015-02-01 --outdir results/graphs/tom_fischbach/ago-2025/
 ```
 
 Finally you can specify tags per command line argument as follows:
