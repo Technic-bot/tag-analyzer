@@ -146,8 +146,8 @@ def graph_heatmap(df):
     fig, ax = plt.subplots(figsize=(19.2,10.8))
     im = ax.imshow(data,
             aspect='auto',
-            cmap=custom_cmap,
-            # cmap="magma",
+            # cmap=custom_cmap,
+            cmap="magma",
             interpolation='nearest',
             extent=[dates.min(), dates.max(), 0, data.shape[0]],
             origin='lower'
