@@ -147,7 +147,7 @@ def graph_heatmap(df):
     im = ax.imshow(data,
             aspect='auto',
             # cmap=custom_cmap,
-            cmap="magma",
+            cmap="cividis",
             interpolation='nearest',
             extent=[dates.min(), dates.max(), 0, data.shape[0]],
             origin='lower'
@@ -179,12 +179,12 @@ if __name__=="__main__":
     df = preprocess(opts.filename, opts.time_start, opts.time_stop)
     tag_df = group_tags(df, tags, opts.frequency)
     time_df = group_artworks(df, opts.frequency)
-    fig = graph_tags(tag_df, tags, colors)
+    # fig = graph_tags(tag_df, tags, colors)
     htm = graph_heatmap(tag_df)
     if not opts.outdirectory:
         plt.show()
     else:
-        fig.savefig(opts.outdirectory + "tags_over_time.png")
+        # fig.savefig(opts.outdirectory + "tags_over_time.png")
         htm.savefig(opts.outdirectory + "heatmap.png")
 
 
