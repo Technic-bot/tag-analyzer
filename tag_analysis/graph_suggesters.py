@@ -8,7 +8,7 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.colors import PowerNorm
 
 years = mdates.YearLocator()
 six_months = mdates.MonthLocator(interval=6)
@@ -20,7 +20,7 @@ def proc_opts():
     parser.add_argument("--preprocessed", action='store_true', help="Preprocessed file with suggesters")
     parser.add_argument("--outdirectory", "-o", help="Output directory (default: ./graphs/)")
     parser.add_argument('--title', help = 'Prefix name for graphs on disks', default=None)  
-    parser.add_argument('--frequency', help = 'Group by frequency in months', default="6ME", type=str)  
+    parser.add_argument('--frequency', help = 'Group by frequency in months', default="QE", type=str)  
     parser.add_argument('--time-start', help = 'Only consider entries after this date')  
     parser.add_argument('--time-stop', help = 'Only consider entries after this date')  
     return parser.parse_args()
@@ -100,18 +100,22 @@ class PatreonAnalyzer():
         grouper = pd.Grouper(key='date', freq=freq)
         grp = heat_df.groupby([grouper, 'suggester'])
         # print(grp.size().reset_index(name='count'))
-        wide_df = grp.size().reset_index(name='count').pivot(index="suggester", columns="date", values='count').fillna(0)
+        wide_df = grp.size().reset_index(name='count').pivot(
+                index="suggester", columns="date", values='count'
+                ).fillna(0)
         wide_df = wide_df.reindex(suggester_slice)
         # print(wide_df)
 
         data = wide_df.values
         rows, cols = wide_df.shape
         dates = mdates.date2num(wide_df.columns)
+        dt = dates[1] - dates[1]
         
         fig, ax = plt.subplots(figsize=(12,6))
         im = ax.imshow(data, aspect='auto',
-                       extent=[dates.min(), dates.max(), -0.5, data.shape[0] - 0.5],
+                       extent=[dates.min() - dt/2, dates.max() + dt/2, -0.5, data.shape[0] - 0.5],
                        cmap='cividis',
+                       norm=PowerNorm(gamma=0.5),
                        interpolation='nearest',
                        origin='lower')
         
@@ -130,6 +134,8 @@ class PatreonAnalyzer():
         ax.set_xlabel("Time")
         ax.set_ylabel("Suggester")
         
+        cb = plt.colorbar(im, ax=ax)
+        cb.set_label("Incidence of characters in artworks")
         if not self.outdir:
             plt.show()
         else:
@@ -147,6 +153,6 @@ if __name__=="__main__":
     tops = analyzer.get_top_suggesters()
     n_uniq = analyzer.df['suggester'].nunique()
     print(f"Number of unique suggesters: {n_uniq}")
-    analyzer.suggester_heatmap(suggester_slice=analyzer.top_suggesters)
+    analyzer.suggester_heatmap(suggester_slice=analyzer.top_suggesters, freq=args.frequency)
 
 
