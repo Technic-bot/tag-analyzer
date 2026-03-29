@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.colors import PowerNorm 
 
 years = mdates.YearLocator()
 six_months = mdates.MonthLocator(interval=6)
@@ -100,7 +101,7 @@ def merge_df(tag_df, times_df):
 
 def graph_tags(merged_df, tags, colors):
     # plt.style.use('seaborn-v0_8-darkgrid')
-    plt.style.use('ggplot')
+    # plt.style.use('ggplot')
     fig, ax = plt.subplots(figsize=(19.2,10.8))
     bottom = np.zeros_like(merged_df.index)
     for tag, color in zip(tags, colors):
@@ -123,13 +124,14 @@ def graph_tags(merged_df, tags, colors):
     return fig
 
 def graph_heatmap(df):
-    plt.style.use('seaborn-v0_8-darkgrid')
+    # plt.style.use('seaborn-v0_8-darkgrid')
 
     df = df[df.sum().sort_values(ascending=False).index]
     data = df.T.values
     chars = df.columns
     times = df.index
     dates = mdates.date2num(times)
+    dt = dates[1] - dates[0]
 
     custom_cmap = LinearSegmentedColormap.from_list(
         "my_cmap",
@@ -149,7 +151,8 @@ def graph_heatmap(df):
             # cmap=custom_cmap,
             cmap="cividis",
             interpolation='nearest',
-            extent=[dates.min(), dates.max(), 0, data.shape[0]],
+            extent=[dates.min() -dt/2 , dates.max()+dt/2 , -0.5, data.shape[0] -0.5],
+            norm=PowerNorm(gamma=0.5),
             origin='lower'
             )
 
