@@ -6,6 +6,8 @@ Input format is a json parsed from e621 json endpoint will eventually add a link
 
 ## Usage
 
+### Tag analysis
+
 Mostly for me but if anyone wants to use this for their own: This repo contains 2 scripts [compute_top_tags.py](tag_analysis/compute_top_tags.py) which allows you to quickly visualize all the unique tags from your query and their absolute frequency. You can invoke it as follows:
 
 ```bash
@@ -38,6 +40,15 @@ As you can see is clunky so not really recommended but good for a fast and easy 
 
 The workflow i use is i get my tags from the comput_top_tags script and then ensemble a suitable tags.txt file to run with graph_tags.py
 
+### Suggester Analysis
+
+This is more specific, can only be used with suggesters extracted from patreon post descriptions on Tom patreon data used is from my other [Repository for hosting Twokinds art](https://github.com/Technic-bot/ArtVault/blob/main/data/stable/twokinds_patreon.json) but it is mostly mirrored in the data folder organized per month
+
+Despite requiring some data wrangling to get into json format usage of this script is basically the same:
+
+``` bash
+python tag_analysis/graph_suggesters.py data/2026/march/twokinds_patreon.csv --outdir results/graphs/tom_fischbach/march-2026/
+```
 
 
 

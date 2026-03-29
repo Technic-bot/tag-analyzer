@@ -11,6 +11,7 @@ from matplotlib.colors import PowerNorm
 
 years = mdates.YearLocator()
 six_months = mdates.MonthLocator(interval=6)
+quarterly = mdates.MonthLocator((1,4,7,10))
 auto_locator = mdates.AutoDateLocator()
 
 def proc_opts():
@@ -133,13 +134,6 @@ def graph_heatmap(df):
     dates = mdates.date2num(times)
     dt = dates[1] - dates[0]
 
-    custom_cmap = LinearSegmentedColormap.from_list(
-        "my_cmap",
-        #["#72CDFF", '#F7941D'],
-        [ "#6dcff6", "#f7941d"],
-        N=256  # smoothness
-    )
-
     # Things:
     cyan, orange = [ "#6dcff6", "#f7941d"]
     # Me
@@ -151,7 +145,7 @@ def graph_heatmap(df):
             # cmap=custom_cmap,
             cmap="cividis",
             interpolation='nearest',
-            extent=[dates.min() -dt/2 , dates.max()+dt/2 , -0.5, data.shape[0] -0.5],
+            extent=[dates[0], dates[-1], -0.5, data.shape[0] -0.5],
             norm=PowerNorm(gamma=0.5),
             origin='lower'
             )
@@ -160,7 +154,7 @@ def graph_heatmap(df):
     cb.set_label("Incidence of characters in artworks")
 
     ax.xaxis_date()
-    locator = mdates.AutoDateLocator()
+    locator = auto_locator
     fmtr = mdates.DateFormatter('%Y-%m')
 
     ax.xaxis.set_major_locator(locator)
@@ -170,12 +164,13 @@ def graph_heatmap(df):
     ax.set_yticklabels(chars)
     plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
 
-
     ax.set_title("Heatmap of characters over time")
-    ax.annotate("By TecBot with ♥ ", xy= (0.8,-0.1),
+    ax.annotate("By TecBot with ♥ ", xy= (1.05, -0.1),
                 xycoords='axes fraction', fontsize=10)
+
+    fig.autofmt_xdate()
     return fig
-        
+    
 if __name__=="__main__":
     opts = proc_opts()
     tags, colors = parse_tags(opts.tags)

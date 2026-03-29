@@ -83,7 +83,7 @@ class PatreonAnalyzer():
     def get_top_suggesters(self, n_top=25):
         self.top_sug_df = self.df.groupby('suggester').size().sort_values(ascending=False)
         head_df = self.top_sug_df.head(n_top)
-        self.top_suggesters = head_df.index
+        self.top_suggesters = head_df.index.to_list()
         print(head_df)
         total = self.top_sug_df.sum()
         print("Total grouped sketches", total)
@@ -92,7 +92,7 @@ class PatreonAnalyzer():
 
     def suggester_heatmap(self, freq='QE', suggester_slice=[]):
         heat_df = self.df
-        if suggester_slice.to_list(): 
+        if suggester_slice:
             print(heat_df)
             mask = self.df['suggester'].isin(suggester_slice)
             heat_df = self.df[mask]
@@ -109,11 +109,11 @@ class PatreonAnalyzer():
         data = wide_df.values
         rows, cols = wide_df.shape
         dates = mdates.date2num(wide_df.columns)
-        dt = dates[1] - dates[1]
+        dt = dates[1] - dates[0]
         
         fig, ax = plt.subplots(figsize=(12,6))
         im = ax.imshow(data, aspect='auto',
-                       extent=[dates.min() - dt/2, dates.max() + dt/2, -0.5, data.shape[0] - 0.5],
+                       extent=[dates.min(), dates.max(), -0.5, data.shape[0] - 0.5],
                        cmap='cividis',
                        norm=PowerNorm(gamma=0.5),
                        interpolation='nearest',
@@ -135,7 +135,10 @@ class PatreonAnalyzer():
         ax.set_ylabel("Suggester")
         
         cb = plt.colorbar(im, ax=ax)
-        cb.set_label("Incidence of characters in artworks")
+        cb.set_label("Number of suggestions")
+    
+        ax.annotate("By TecBot with ♥ ", xy= (1.05,-0.1),
+                xycoords='axes fraction', fontsize=10)
         if not self.outdir:
             plt.show()
         else:
@@ -150,9 +153,10 @@ if __name__=="__main__":
         analyzer.get_suggester()
         analyzer.special_cases()
         analyzer.persist_data()
-    tops = analyzer.get_top_suggesters()
+    analyzer.get_top_suggesters()
     n_uniq = analyzer.df['suggester'].nunique()
     print(f"Number of unique suggesters: {n_uniq}")
+    suggs= analyzer.top_suggesters.extend(['dan vaelling','technic_bot','noxamillion'])
     analyzer.suggester_heatmap(suggester_slice=analyzer.top_suggesters, freq=args.frequency)
 
 
