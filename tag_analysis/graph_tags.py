@@ -28,11 +28,11 @@ def proc_opts():
 def preprocess(filename, time_start=None, time_stop=None):
     print(f'Reading {filename}')
     df = pd.read_json(filename)
+    df['creation'] = pd.to_datetime(df['creation'], format='ISO8601')
     if time_start: 
         df = df[df['creation'] > time_start ]
     if time_stop: 
         df = df[df['creation'] < time_stop ]
-    df['creation'] = pd.to_datetime(df['creation'], format='ISO8601')
     valid_cols = ['characters', 'tags', 'species'] #meta
     df['all_tags'] = df[valid_cols[0]]
     for col in valid_cols:
@@ -127,7 +127,7 @@ def graph_tags(merged_df, tags, colors):
 def graph_heatmap(df):
     # plt.style.use('seaborn-v0_8-darkgrid')
 
-    df = df[df.sum().sort_values(ascending=False).index]
+    # df = df[df.sum().sort_values(ascending=False).index]
     data = df.T.values
     chars = df.columns
     times = df.index

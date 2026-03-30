@@ -31,15 +31,10 @@ class PatreonAnalyzer():
         self.outdir = outdir
         self.no_suggs_file = "/no_suggs.csv"
 
-    def preprocess(self, filename, time_start=None, time_stop=None):
+    def preprocess(self, filename):
         print(f'Reading {self.filename}')
         df = pd.read_csv(self.filename)
         df['date'] = pd.to_datetime(df['date'], format='ISO8601')
-        if time_start: 
-            df = df[df['date'] > time_start ]
-        if time_stop: 
-            df = df[df['date'] < time_stop ]
-
         print(f"Got {len(df)} entries:" )
         # print(df.head())
         self.df = df
@@ -63,6 +58,15 @@ class PatreonAnalyzer():
         self.df['suggester'] = self.df['suggester'].str.strip()
         self.no_sugg_df = self.df.loc[none_idx]
         return
+
+    def slice_df(self, time_start, time_stop):
+        if time_start: 
+            self.df = self.df[self.df['date'] > time_start ]
+        if time_stop: 
+            self.df = self.df[self.df['date'] < time_stop ]
+        print(f"Sliced to {len(self.df)} entries")
+        return
+
     
     def special_cases(self):
         # Things
@@ -103,8 +107,9 @@ class PatreonAnalyzer():
         wide_df = grp.size().reset_index(name='count').pivot(
                 index="suggester", columns="date", values='count'
                 ).fillna(0)
-        wide_df = wide_df.reindex(suggester_slice)
-        # print(wide_df)
+        # Need to re fillna to remove suggesters with no suggestions again
+        wide_df = wide_df.reindex(suggester_slice).fillna(0)
+        print(wide_df)
 
         data = wide_df.values
         rows, cols = wide_df.shape
@@ -148,12 +153,13 @@ class PatreonAnalyzer():
 if __name__=="__main__":
     args = proc_opts()
     analyzer = PatreonAnalyzer(args.filename, args.outdirectory)
-    analyzer.preprocess(args.time_start, args.time_stop)
+    analyzer.preprocess(args.filename)
     if not args.preprocessed:
         analyzer.get_suggester()
         analyzer.special_cases()
         analyzer.persist_data()
     analyzer.get_top_suggesters()
+    analyzer.slice_df(args.time_start, args.time_stop)
     n_uniq = analyzer.df['suggester'].nunique()
     print(f"Number of unique suggesters: {n_uniq}")
     suggs= analyzer.top_suggesters.extend(['dan vaelling','technic_bot','noxamillion'])

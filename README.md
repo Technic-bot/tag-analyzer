@@ -50,5 +50,11 @@ Despite requiring some data wrangling to get into json format usage of this scri
 python tag_analysis/graph_suggesters.py data/2026/march/twokinds_patreon.csv --outdir results/graphs/tom_fischbach/march-2026/
 ```
 
+Advanced usage is as follows:
+
+```bash
+python tag_analysis/graph_suggesters.py data/2026/march/twokinds_patreon.csv --freq ME --time-start 2024-12-01 --outdir results/graphs/tom_fischbach/march-2026/recent_
+```
+
 
 
