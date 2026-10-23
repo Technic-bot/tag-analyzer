@@ -71,8 +71,15 @@ class PatreonAnalyzer():
     def special_cases(self):
         # Things
         idx = self.df['suggester'].str.contains('thingsare', na=False) 
-        print(f"Found {len(idx)} instances for ThingAre<Something>")
+        counts = idx.values.sum()
+        print(f"Found {counts} instances for ThingAre<Something>")
         self.df.loc[idx,'suggester'] = 'thingsare'
+
+        # Unsteaddy
+        idx = self.df['suggester'].str.contains('unst', na=False) 
+        counts = idx.values.sum()
+        print(f"Found {counts} instances for Unst<Something>")
+        self.df.loc[idx,'suggester'] = 'unsteddy'
         return
 
     def persist_data(self):
@@ -88,7 +95,7 @@ class PatreonAnalyzer():
         self.top_sug_df = self.df.groupby('suggester').size().sort_values(ascending=False)
         head_df = self.top_sug_df.head(n_top)
         self.top_suggesters = head_df.index.to_list()
-        print(head_df)
+        # print(head_df)
         total = self.top_sug_df.sum()
         print("Total grouped sketches", total)
         if self.outdir:
@@ -97,7 +104,7 @@ class PatreonAnalyzer():
     def suggester_heatmap(self, freq='QE', suggester_slice=[]):
         heat_df = self.df
         if suggester_slice:
-            print(heat_df)
+            #print(heat_df)
             mask = self.df['suggester'].isin(suggester_slice)
             heat_df = self.df[mask]
             
@@ -109,7 +116,7 @@ class PatreonAnalyzer():
                 ).fillna(0)
         # Need to re fillna to remove suggesters with no suggestions again
         wide_df = wide_df.reindex(suggester_slice).fillna(0)
-        print(wide_df)
+        # print(wide_df)
 
         data = wide_df.values
         rows, cols = wide_df.shape
